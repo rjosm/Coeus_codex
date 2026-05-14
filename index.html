@@ -377,7 +377,9 @@ async function resolveProductName(product) {
   if (!namePromptUsed) {
     namePromptUsed = true;
     const entered = prompt('We don\'t have a name for this product yet.\nWant to add one? (tap Cancel to skip)\n\nIngredients: ' + (product.ingredientsList||'').slice(0,80) + '...');
-    if (entered && entered.trim()) { product.name = entered.trim(); return product.name; }
+    if (entered && entered.trim()) { product.name = entered.trim();
+                                    const{date,time}=getDateTime();try{fetch(TRACKING_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:'Product Errors',row:[date,time,product.gtin,product.brand,entered.trim()]})});}catch(e){console.log('Tracking error:',e);}
+                                    return product.name; }
   }
   return product.brand ? product.brand + ' Product' : 'Unknown Product';
 }
@@ -417,11 +419,12 @@ async function loadProducts() {
 // TRACKING
 // ═══════════════════════════════════════
 const SHEET_URL='https://script.google.com/macros/s/AKfycbzBzKkpmfILvaZ_mWTpM5z3ckad02XE2GPkMtIoLtDEqmkBtMdwn7-_PHnYvhODe6w/exec';
+const TRACKING_URL='https://script.google.com/macros/s/AKfycbwgcs_Fo4zl0laphvCKOTVzRUeDMJZ63Jp6BgiE3cJVKCFap9rwVTFKyTR90f4-yeu97g/exec';
 function getDateTime(){const now=new Date();return{date:now.toLocaleDateString(),time:now.toLocaleTimeString()};}
 function //sendToSheet(sheetName,row){try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:sheetName,row:row})});}catch(e){console.log('Tracking error:',e);}}
-function //trackMissingGTIN(gtin){const{date,time}=getDateTime();sendToSheet('Missing GTINs',[date,time,gtin,'']);}
+function trackMissingGTIN(gtin){const{date,time}=getDateTime();try{fetch(TRACKING_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:'Missing Products',row:[date,time,gtin,'']})});}catch(e){console.log('Tracking error:',e);}}
 function //trackFocusCombination(prods){const{date,time}=getDateTime();const v1=selPriorities[0],v2=selPriorities[1];sendToSheet('Focus Combinations',[date,time,variables.find(x=>x.key===v1).label,variables.find(x=>x.key===v2).label,pref[v1].direction,pref[v1].weight,pref[v2].direction,pref[v2].weight,prods.length]);}
-function trackPrice(gtin,productName,price){const{date,time}=getDateTime();sendToSheet('Price Entries',[date,time,gtin,productName,price,'']);}
+function trackPrice(gtin,productName,price){const{date,time}=getDateTime();try{fetch(TRACKING_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:'Pricing',row:[date,time,gtin,productName,price,'']})});}catch(e){console.log('Tracking error:',e);}}
 
 const TITLES={'sc-home':'Coeus','sc-focus':'Select Shopping Focus','sc-refine':'Preference','sc-allergens':'Allergen Profile','sc-products':'Select Products','sc-results':'For you!','sc-info':'Product info'};
 const MAX_SEL=2,MAX_PROD=4;
