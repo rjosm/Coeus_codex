@@ -664,13 +664,6 @@ function showInfo(idx,isW){
   showSc('sc-info',true);
 }
 
-function reportMismatch(gtin, name) {
-  const note = prompt('What\'s different about this product? (optional)') || '';
-  const {date,time} = getDateTime();
-  sendToSheet('Label Mismatches', [date, time, gtin, name, note]);
-  alert('Thanks for the report! We\'ll review and update this product.');
-}
-
 function uploadPhoto(gtin) {
   alert('Photo upload coming soon! For now, please email your photo to support@coeus.app with the product barcode: ' + gtin);
 }
