@@ -643,7 +643,7 @@ function showInfo(idx,isW){
     ${[p.brand,p.category,p.weight].filter(Boolean).length?`<div class="info-meta">${[p.brand,p.category,p.weight].filter(Boolean).join(' · ')}</div>`:''}
     <div class="info-img">Product image<br>coming soon</div>
     ${confirmHTML}
-    <div class="info-ing"><strong>Ingredients:</strong> ${shortI}${moreI}</div>
+    <div class="info-ing" id="ing-${idx}"><strong>Ingredients:</strong> <span style="color:#888;font-style:italic;">Loading...</span></div>
     <div class="nf">
       <div class="nf-title">Nutrition Facts</div>
       <div class="nf-svc">Serving Size: ${p.servingSize||'1 serving'}</div>
@@ -661,8 +661,34 @@ function showInfo(idx,isW){
       <div class="nf-note">* Full nutrition facts will be pulled from the database in a future update.</div>
     </div>
     ${voluntaryHTML}`;
-  showSc('sc-info',true);
+ fetchIngredients(p.gtin, idx);
+showSc('sc-info',true);
 }
+
+
+async function fetchIngredients(gtin, idx) {
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${gtin}.json`);
+    const data = await res.json();
+    const el = document.getElementById('ing-' + idx);
+    if (!el) return;
+    if (data.status === 1 && data.product.ingredients_text) {
+      const ing = data.product.ingredients_text;
+      const parts = ing.split(',');
+      const short = parts.slice(0,3).join(',') + (parts.length > 3 ? ',' : '');
+      const safe = ing.replace(/'/g, "\\'");
+      const more = parts.length > 3 ? ` <a style="color:#3b7a1a;font-weight:600;text-decoration:underline;cursor:pointer" onclick="alert('Full ingredients:\\n${safe}')">more...</a>` : '';
+      el.innerHTML = '<strong>Ingredients:</strong> ' + short + more;
+    } else {
+      el.innerHTML = '<strong>Ingredients:</strong> Not available for this product';
+    }
+  } catch(e) {
+    const el = document.getElementById('ing-' + idx);
+    if (el) el.innerHTML = '<strong>Ingredients:</strong> Not available';
+  }
+}
+
+
 
 function uploadPhoto(gtin) {
   alert('Photo upload coming soon! For now, please email your photo to support@coeus.app with the product barcode: ' + gtin);
