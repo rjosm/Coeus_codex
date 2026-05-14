@@ -526,11 +526,18 @@ function renderSlots(){
       const showSuggestions=(q)=>{
         sug.innerHTML='';
         const gm=findByGtin(q);if(gm!==null){setSlot(i,gm);sug.style.display='none';return;}
-        const hits=products.map((p,idx)=>({p,idx})).filter(({p})=>!q||p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q));
+        const hits=products.map((p,idx)=>({p,idx})).filter(({p})=>{
+  if(!q) return false; // don't show anything until user types
+  return (p.name&&p.name.toLowerCase().includes(q))||
+         (p.brand&&p.brand.toLowerCase().includes(q))||
+         (p.category&&p.category.toLowerCase().includes(q))||
+         (p.ingredientsList&&p.ingredientsList.toLowerCase().includes(q));
+}).slice(0,20);
         if(!hits.length){sug.style.display='none';return;}
         hits.forEach(({p,idx})=>{
           const it=document.createElement('div');it.className='slot-sug-item';
-          it.textContent=p.brand?`${p.name} (${p.brand})`:p.name;
+          const displayName = p.name || p.category || 'Product';
+it.textContent = p.brand ? `${displayName} (${p.brand})` : displayName;
           it.onclick=()=>{setSlot(i,idx);sug.style.display='none';};sug.appendChild(it);
         });
         sug.style.display='block';
